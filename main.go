@@ -33,6 +33,11 @@ type Article struct {
 	Content     string    `json:"content"`
 }
 
+func (a *Article) FormatPublishedDate() string {
+	year, month, day := a.PublishedAt.Date()
+	return fmt.Sprintf("%v %d, %d", month, day, year)
+}
+
 type Results struct {
 	Status       string    `json:"status"`
 	TotalResults int       `json:"totalResults"`
@@ -44,6 +49,22 @@ type Search struct {
 	NextPage   int
 	TotalPages int
 	Results    Results
+}
+
+func (s *Search) IsLastPage() bool {
+	return s.NextPage >= s.TotalPages
+}
+
+func (s *Search) CurrentPage() int {
+	if s.NextPage == 1 {
+		return s.NextPage
+	}
+
+	return s.NextPage - 1
+}
+
+func (s *Search) PreviousPage() int {
+	return s.CurrentPage() - 1
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
@@ -98,6 +119,11 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	search.TotalPages = int(math.Ceil(float64(search.Results.TotalResults / pageSize)))
+
+	if ok := !search.IsLastPage(); ok {
+		search.NextPage++
+	}
+
 	err = tpl.Execute(w, search)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
