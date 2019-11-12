@@ -57,6 +57,11 @@ header {
   align-items: center;
 }
 
+.footer {
+  margin-top: 100px;
+  margin-left: 50px;
+}
+
 .logo {
   color: #002200;
 }
